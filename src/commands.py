@@ -52,4 +52,4 @@ def execute(
         name = command
         return f"Ошибка: неизвестная команда '{name}'"
 
-    return handler(args)
+    return handler(args) 

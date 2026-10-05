@@ -6,7 +6,10 @@ import tkinter as tk
 from tkinter import scrolledtext
 from typing import Optional
 
+from pathlib import Path
+
 from src.commands import execute
+from src.config import AppConfig, format_debug
 from src.parser import parse_command
 
 
@@ -20,14 +23,20 @@ def get_window_title() -> str:
 class ShellGUI:
     """Главное окно эмулятора оболочки."""
 
-    def __init__(self, root: tk.Tk) -> None:
+    def __init__(
+            self,
+            root: tk.Tk,
+            config: AppConfig,
+    ) -> None:
         """
-        Инициализирует окно и виджеты.
+        Создаёт окно эмулятора.
 
         Args:
-            root: Корневое окно tkinter.
+            root: Окно tkinter.
+            config: Настройки запуска.
         """
         self.root = root
+        self.config = config
         self.root.title(get_window_title())
         self.root.geometry("700x450")
         self.root.minsize(400, 300)
@@ -35,6 +44,17 @@ class ShellGUI:
         self._build_widgets()
         self._bind_events()
         self._print_welcome()
+
+        # Показать, какие параметры реально загрузились
+        self._append(format_debug(config) + "\n")
+
+        # Если указан стартовый скрипт — выполнить его
+        if config.script_path:
+            path = config.script_path
+            self.root.after(
+                100,
+                lambda: self._run_startup_script(path),
+            )
 
     def _build_widgets(self) -> None:
         """Создаёт и размещает виджеты."""
@@ -133,9 +153,53 @@ class ShellGUI:
         """Обрабатывает закрытие окна."""
         self.root.destroy()
 
+    def _run_startup_script(self, path: str) -> None:
+        """
+        Выполняет файл со командами эмулятора.
+        Ошибки в отдельных строках не останавливают весь скрипт.
+        """
+        script = Path(path)
+        if not script.is_file():
+            self._append(
+                f"Ошибка скрипта: файл не найден ({path})\n"
+            )
+            return
 
-def run_gui() -> None:
-    """Создаёт и запускает главное окно."""
+        self._append(f"--- Стартовый скрипт: {path} ---\n")
+
+        try:
+            lines = script.read_text(
+                encoding="utf-8"
+            ).splitlines()
+        except OSError as exc:
+            self._append(f"Ошибка чтения: {exc}\n")
+            return
+
+        for raw in lines:
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            # Как будто пользователь ввёл команду
+            self._append(f"> {line}\n")
+
+            try:
+                command, args = parse_command(line)
+            except ValueError as exc:
+                self._append(f"Ошибка: {exc}\n")
+                continue
+
+            result = execute(command, args)
+            if result == "__EXIT__":
+                self._append("(exit — конец скрипта)\n")
+                break
+            if result:
+                self._append(result + "\n")
+
+        self._append("--- Конец скрипта ---\n")
+
+def run_gui(config: AppConfig) -> None:
+    """Запускает GUI с переданными настройками."""
     root = tk.Tk()
-    ShellGUI(root)
+    ShellGUI(root, config)
     root.mainloop()

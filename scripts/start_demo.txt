@@ -1,0 +1,6 @@
+# Демо-скрипт (строки с # игнорируются)
+ls
+ls "file with spaces.txt"
+cd /tmp
+unknown_command
+cd 'dir'

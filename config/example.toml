@@ -1,0 +1,4 @@
+# Настройки эмулятора (пример)
+
+vfs_path = "vfs/minimal"
+script_path = "scripts/start_demo.txt"
