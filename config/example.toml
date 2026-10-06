@@ -1,4 +1,2 @@
-# Настройки эмулятора (пример)
-
-vfs_path = "vfs/minimal"
+git vfs_path = "vfs/minimal"
 script_path = "scripts/start_demo.txt"

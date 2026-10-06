@@ -1,4 +1,4 @@
-"""Чтение параметров запуска: CLI и TOML."""
+
 
 import argparse
 import tomllib
@@ -9,15 +9,12 @@ from typing import Optional
 
 @dataclass
 class AppConfig:
-    """Итоговые настройки приложения."""
-
     vfs_path: Optional[str] = None
     script_path: Optional[str] = None
     config_path: Optional[str] = None
 
 
 def parse_cli(argv: Optional[list] = None) -> AppConfig:
-    """Читает только аргументы командной строки."""
     parser = argparse.ArgumentParser(
         description="Эмулятор оболочки ОС",
     )
@@ -48,7 +45,6 @@ def parse_cli(argv: Optional[list] = None) -> AppConfig:
 
 
 def load_toml(path: str) -> AppConfig:
-    """Читает настройки из TOML-файла."""
     file_path = Path(path)
     if not file_path.is_file():
         raise FileNotFoundError(
@@ -69,10 +65,6 @@ def merge_configs(
     cli: AppConfig,
     file_cfg: Optional[AppConfig],
 ) -> AppConfig:
-    """
-    Склеивает настройки.
-    Если в CLI что-то указано — берём CLI, иначе из файла.
-    """
     if file_cfg is None:
         return AppConfig(
             vfs_path=cli.vfs_path,
@@ -96,7 +88,6 @@ def merge_configs(
 
 
 def load_config(argv: Optional[list] = None) -> AppConfig:
-    """Полная загрузка: сначала CLI, потом файл, потом склейка."""
     cli = parse_cli(argv)
     file_cfg = None
     if cli.config_path:
@@ -105,7 +96,6 @@ def load_config(argv: Optional[list] = None) -> AppConfig:
 
 
 def format_debug(cfg: AppConfig) -> str:
-    """Текст для отладки: что реально получилось."""
     return "\n".join([
         "=== Отладка параметров ===",
         f"  vfs_path    = {cfg.vfs_path!r}",

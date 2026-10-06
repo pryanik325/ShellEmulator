@@ -1,5 +1,3 @@
-"""Графический интерфейс эмулятора (tkinter)."""
-
 import getpass
 import socket
 import tkinter as tk
@@ -14,27 +12,19 @@ from src.parser import parse_command
 
 
 def get_window_title() -> str:
-    """Заголовок окна по данным реальной ОС."""
+
     username = getpass.getuser()
     hostname = socket.gethostname()
     return f"Эмулятор - [{username}@{hostname}]"
 
 
 class ShellGUI:
-    """Главное окно эмулятора оболочки."""
 
     def __init__(
             self,
             root: tk.Tk,
             config: AppConfig,
     ) -> None:
-        """
-        Создаёт окно эмулятора.
-
-        Args:
-            root: Окно tkinter.
-            config: Настройки запуска.
-        """
         self.root = root
         self.config = config
         self.root.title(get_window_title())
@@ -44,11 +34,8 @@ class ShellGUI:
         self._build_widgets()
         self._bind_events()
         self._print_welcome()
-
-        # Показать, какие параметры реально загрузились
         self._append(format_debug(config) + "\n")
 
-        # Если указан стартовый скрипт — выполнить его
         if config.script_path:
             path = config.script_path
             self.root.after(
@@ -57,7 +44,6 @@ class ShellGUI:
             )
 
     def _build_widgets(self) -> None:
-        """Создаёт и размещает виджеты."""
         self.output = scrolledtext.ScrolledText(
             self.root,
             wrap=tk.WORD,
@@ -96,14 +82,12 @@ class ShellGUI:
         self.entry.focus_set()
 
     def _bind_events(self) -> None:
-        """Привязывает обработчики событий."""
         self.entry.bind("<Return>", self._on_enter)
         self.root.protocol(
             "WM_DELETE_WINDOW", self._on_close
         )
 
     def _print_welcome(self) -> None:
-        """Выводит приветствие при запуске."""
         self._append(
             "Эмулятор оболочки (Этап 1)\n"
             "Команды: ls, cd, exit\n"
@@ -112,12 +96,6 @@ class ShellGUI:
         )
 
     def _append(self, text: str) -> None:
-        """
-        Добавляет текст в область вывода.
-
-        Args:
-            text: Текст для отображения.
-        """
         self.output.configure(state=tk.NORMAL)
         self.output.insert(tk.END, text)
         self.output.see(tk.END)
@@ -126,12 +104,6 @@ class ShellGUI:
     def _on_enter(
         self, event: Optional[tk.Event] = None
     ) -> None:
-        """
-        Обрабатывает Enter: разбор и выполнение.
-
-        Args:
-            event: Событие tkinter (не используется).
-        """
         line = self.entry.get()
         self.entry.delete(0, tk.END)
         self._append(f"> {line}\n")
@@ -150,14 +122,9 @@ class ShellGUI:
             self._append(result + "\n")
 
     def _on_close(self) -> None:
-        """Обрабатывает закрытие окна."""
         self.root.destroy()
 
     def _run_startup_script(self, path: str) -> None:
-        """
-        Выполняет файл со командами эмулятора.
-        Ошибки в отдельных строках не останавливают весь скрипт.
-        """
         script = Path(path)
         if not script.is_file():
             self._append(
@@ -180,7 +147,6 @@ class ShellGUI:
             if not line or line.startswith("#"):
                 continue
 
-            # Как будто пользователь ввёл команду
             self._append(f"> {line}\n")
 
             try:
@@ -199,7 +165,6 @@ class ShellGUI:
         self._append("--- Конец скрипта ---\n")
 
 def run_gui(config: AppConfig) -> None:
-    """Запускает GUI с переданными настройками."""
     root = tk.Tk()
     ShellGUI(root, config)
     root.mainloop()
